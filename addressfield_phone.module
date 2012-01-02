@@ -1,0 +1,105 @@
+<?php
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function addressfield_phone_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'addressfield') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implements hook_field_attach_presave
+ * Store additional address fields serialized in addressfield data column
+ */
+function addressfield_phone_field_attach_presave($entity_type, $entity) {
+  $addressfields = addressfield_phone_addressfield_types();
+  foreach($addressfields as $addressfield) {
+    if (isset($entity->$addressfield)){
+      $data = array();
+      $default_fields = array_keys(addressfield_default_values());
+      $default_fields[] = 'element_key';
+      $language = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
+      foreach($entity->{$addressfield}[$language] as $delta => $fieldset) {
+        $data = array();
+        foreach ($fieldset as $field_key => $field_value) {
+          // Compare fields with addressfield default fields and store any additional fields in data
+          if (!in_array($field_key, $default_fields)){
+            $data[$field_key] = $field_value; // Store additional field value
+          }
+        }
+        if(!empty($data)){
+          $entity->{$addressfield}[$language][$delta]['data'] = serialize($data);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_field_attach_load
+ * Load and set additional addressfield field values from serialized data column
+ */
+function addressfield_phone_field_attach_load($entity_type, $entities, $age, $options){
+  $addressfields = addressfield_phone_addressfield_types();
+  foreach($entities as $key => $entity) {
+    foreach($addressfields as $addressfield) {
+      if (isset($entity->{$addressfield})) {
+        $language = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
+        if (!isset($entity->{$addressfield})) continue;
+        foreach($entity->{$addressfield}[$language] as $delta => $fieldset) {
+          if (!empty($entity->{$addressfield}[$language][$delta]['data'])){
+            // Unserialize data, else skip if string
+            if ($data = unserialize($entity->{$addressfield}[$language][$delta]['data'])) {
+              foreach($data as $field_key => $field_value){
+                // Store unserialized data values in additional fields
+                $entities[$key]->{$addressfield}[$language][$delta][$field_key] = $field_value;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+/**
+ * Returns an array of the field names of any addressfields.
+ */
+function addressfield_phone_addressfield_types() {
+  if (!isset($addressfields)) {
+    static $addressfields;
+    $result = db_query("SELECT field_name FROM {field_config} WHERE type = 'addressfield'");
+    $addressfields = array();
+    foreach($result as $row) {
+      $addressfields[] = $row->field_name;
+    }
+  }
+  return $addressfields;
+}
+
+function _addressfield_phone_render_address(&$format) {
+  $address = $format['#address'];
+
+  $format['phone_block'] = array(
+    '#title' => t('Phone'),
+    '#type' => 'addressfield_container',
+    'phone_number' => array(
+      '#title' => t('Contact Phone'),
+      '#size' => 15,
+      '#attributes' => array('class' => array('phone-number')),
+      '#tag' => 'span',
+    ),
+    'phone_number_extension' => array(
+      '#title' => t('Phone Extension'),
+      '#size' => 10,
+      '#attributes' => array('class' => array('phone-extension')),
+      '#tag' => 'span',
+    ),
+    'fax_number' => array(
+      '#title' => t('Fax Number'),
+      '#size' => 15,
+      '#attributes' => array('class' => array('phone-number')),
+      '#tag' => 'div',
+    ),
+  );
+}
