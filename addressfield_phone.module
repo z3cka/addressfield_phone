@@ -45,20 +45,27 @@ function addressfield_phone_field_attach_presave($entity_type, $entity) {
  */
 function addressfield_phone_field_attach_load($entity_type, $entities, $age, $options){
   $addressfields = addressfield_phone_addressfield_types();
-  foreach($entities as $key => $entity) {
-    foreach($addressfields as $addressfield) {
-      if (isset($entity->{$addressfield})) {
-        $language = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
-        if (!isset($entity->{$addressfield})) continue;
-        foreach($entity->{$addressfield}[$language] as $delta => $fieldset) {
-          if (!empty($entity->{$addressfield}[$language][$delta]['data'])){
-            // Unserialize data, else skip if string
-            if ($data = unserialize($entity->{$addressfield}[$language][$delta]['data'])) {
-              foreach($data as $field_key => $field_value){
-                // Store unserialized data values in additional fields
-                $entities[$key]->{$addressfield}[$language][$delta][$field_key] = $field_value;
-              }
-            }
+  $phone_elements = drupal_map_assoc(array(
+    'phone_number',
+    'phone_number_extension',
+    'mobile_number',
+    'fax_number',
+  ));
+
+  foreach ($entities as $entity) {
+    foreach ($addressfields as $field_name) {
+      if (empty($entity->{$field_name})) {
+        continue;
+      }
+
+      $language = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
+      foreach ($entity->{$field_name}[$language] as $delta => $fieldset) {
+        if (!empty($entity->{$field_name}[$language][$delta]['data'])){
+          // Unserialize data, else skip if string
+          if ($data = unserialize($entity->{$field_name}[$language][$delta]['data'])) {
+            // Store unserialized data values in additional fields
+            $phone_data = array_intersect_key($data, $phone_elements);
+            $entity->{$field_name}[$language][$delta] = array_merge($entity->{$field_name}[$language][$delta], $phone_data);
           }
         }
       }
