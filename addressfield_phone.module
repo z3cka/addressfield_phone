@@ -9,8 +9,9 @@ function addressfield_phone_ctools_plugin_directory($module, $plugin) {
 }
 
 /**
- * Implements hook_field_attach_presave
- * Store additional address fields serialized in addressfield data column
+ * Implements hook_field_attach_presave().
+ *
+ * Store additional address fields serialized in addressfield data column.
  */
 function addressfield_phone_field_attach_presave($entity_type, $entity) {
   $addressfields = addressfield_phone_addressfield_types();
@@ -37,8 +38,10 @@ function addressfield_phone_field_attach_presave($entity_type, $entity) {
 }
 
 /**
- * Implements hook_field_attach_load
- * Load and set additional addressfield field values from serialized data column
+ * Implements hook_field_attach_load().
+ *
+ * Load and set additional addressfield field values from serialized data
+ * column.
  */
 function addressfield_phone_field_attach_load($entity_type, $entities, $age, $options){
   $addressfields = addressfield_phone_addressfield_types();
@@ -62,6 +65,7 @@ function addressfield_phone_field_attach_load($entity_type, $entities, $age, $op
     }
   }
 }
+
 /**
  * Returns an array of the field names of any addressfields.
  */
@@ -103,3 +107,4 @@ function _addressfield_phone_render_address(&$format) {
     ),
   );
 }
+
