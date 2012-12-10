@@ -15,21 +15,21 @@ function addressfield_phone_ctools_plugin_directory($module, $plugin) {
  */
 function addressfield_phone_field_attach_presave($entity_type, $entity) {
   $addressfields = addressfield_phone_addressfield_types();
-  foreach($addressfields as $addressfield) {
+  foreach ($addressfields as $addressfield) {
     if (isset($entity->$addressfield)){
-      $data = array();
       $default_fields = array_keys(addressfield_default_values());
       $default_fields[] = 'element_key';
       $language = isset($entity->language) ? $entity->language : LANGUAGE_NONE;
-      foreach($entity->{$addressfield}[$language] as $delta => $fieldset) {
+      foreach ($entity->{$addressfield}[$language] as $delta => $fieldset) {
         $data = array();
         foreach ($fieldset as $field_key => $field_value) {
           // Compare fields with addressfield default fields and store any additional fields in data
           if (!in_array($field_key, $default_fields)){
-            $data[$field_key] = $field_value; // Store additional field value
+            // Store additional field value
+            $data[$field_key] = $field_value;
           }
         }
-        if(!empty($data)){
+        if (!empty($data)){
           $entity->{$addressfield}[$language][$delta]['data'] = serialize($data);
         }
       }
@@ -62,7 +62,7 @@ function addressfield_phone_field_attach_load($entity_type, $entities, $age, $op
       foreach ($entity->{$field_name}[$language] as $delta => $fieldset) {
         if (!empty($entity->{$field_name}[$language][$delta]['data'])){
           // Unserialize data, else skip if string
-          if ($data = unserialize($entity->{$field_name}[$language][$delta]['data'])) {
+          if ($data = unserialize($entity->{$field_name}[$language][$delta]['data']) && is_array($data)) {
             // Store unserialized data values in additional fields
             $phone_data = array_intersect_key($data, $phone_elements);
             $entity->{$field_name}[$language][$delta] = array_merge($entity->{$field_name}[$language][$delta], $phone_data);
