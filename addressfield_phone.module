@@ -91,7 +91,7 @@ function addressfield_phone_addressfield_types() {
   return $addressfields;
 }
 
-function _addressfield_phone_render_address(&$format) {
+function _addressfield_phone_render_address($format) {
   $address = $format['#address'];
 
   $format['phone_block'] = array(
@@ -116,5 +116,7 @@ function _addressfield_phone_render_address(&$format) {
       '#tag' => 'div',
     ),
   );
+
+  return $format;
 }
 
