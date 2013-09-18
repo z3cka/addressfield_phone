@@ -62,13 +62,17 @@ function addressfield_phone_field_attach_load($entity_type, $entities, $age, $op
 
       foreach ($entity->$field_name as $lang_code => $fields) {
         foreach ($fields as $delta => $fieldset) {
-          if (!empty($fieldset['data'])){
-            // Unserialize data, else skip if string
-            if (($data = unserialize($fieldset['data'])) && is_array($data)) {
-              // Store unserialized data values in additional fields
-              $phone_data = array_intersect_key($data, $phone_elements);
-              $entity->{$field_name}[$lang_code][$delta] = array_merge($fieldset, $phone_data);
-            }
+          // Fill default values for pre-addressfield_phone addresses to keep
+          // Commerce Order from duplicating address.
+          if (empty($fieldset['data'])) {
+            $fieldset['data'] = serialize(array_fill_keys($phone_elements, ''));
+          }
+
+          // Unserialize data, else skip if string
+          if (($data = unserialize($fieldset['data'])) && is_array($data)) {
+            // Store unserialized data values in additional fields
+            $phone_data = array_intersect_key($data, $phone_elements);
+            $entity->{$field_name}[$lang_code][$delta] = array_merge($fieldset, $phone_data);
           }
         }
       }
