@@ -2,6 +2,9 @@ name = Address Field Phone
 description = Implements a phone field in an addressfield format handler.
 core = 7.x
 package = Fields
+project = addressfield_phone
 
 dependencies[] = ctools
 dependencies[] = addressfield
+
+files[] = addressfield_phone.migrate.inc
