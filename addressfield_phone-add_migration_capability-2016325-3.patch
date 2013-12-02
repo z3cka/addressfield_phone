@@ -1,3 +1,14 @@
+From c9b70d5cc15fa48d55bd4731e3e031bcf7788c4a Mon Sep 17 00:00:00 2001
+From: Casey Grzecka <casey.grzecka@unlv.edu>
+Date: Tue, 26 Nov 2013 14:02:49 -0800
+Subject: [PATCH 1/2] Issue #2016325 by rsbecker: Add migration capability.
+
+---
+ addressfield_phone.info        |    3 ++
+ addressfield_phone.migrate.inc |   65 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 68 insertions(+)
+ create mode 100644 addressfield_phone.migrate.inc
+
 diff --git a/addressfield_phone.info b/addressfield_phone.info
 index b3251a4..ba24028 100644
 --- a/addressfield_phone.info
@@ -84,3 +95,113 @@ index 0000000..92c8c57
 +  }
 +}
 \ No newline at end of file
+-- 
+1.7.9.5
+
+
+From be25982fa5d32c1b71772f5d5cf878e9c4144e5c Mon Sep 17 00:00:00 2001
+From: Casey Grzecka <casey.grzecka@unlv.edu>
+Date: Mon, 2 Dec 2013 07:42:56 -0800
+Subject: [PATCH 2/2] adding patch to its own branch to see what the git
+ format-patch command does
+
+---
+ ..._phone-add_migration_capability-2016325-3.patch |   86 ++++++++++++++++++++
+ 1 file changed, 86 insertions(+)
+ create mode 100644 addressfield_phone-add_migration_capability-2016325-3.patch
+
+diff --git a/addressfield_phone-add_migration_capability-2016325-3.patch b/addressfield_phone-add_migration_capability-2016325-3.patch
+new file mode 100644
+index 0000000..847625a
+--- /dev/null
++++ b/addressfield_phone-add_migration_capability-2016325-3.patch
+@@ -0,0 +1,86 @@
++diff --git a/addressfield_phone.info b/addressfield_phone.info
++index b3251a4..ba24028 100644
++--- a/addressfield_phone.info
+++++ b/addressfield_phone.info
++@@ -2,6 +2,9 @@ name = Address Field Phone
++ description = Implements a phone field in an addressfield format handler.
++ core = 7.x
++ package = Fields
+++project = addressfield_phone
++ 
++ dependencies[] = ctools
++ dependencies[] = addressfield
+++
+++files[] = addressfield_phone.migrate.inc
++diff --git a/addressfield_phone.migrate.inc b/addressfield_phone.migrate.inc
++new file mode 100644
++index 0000000..92c8c57
++--- /dev/null
+++++ b/addressfield_phone.migrate.inc
++@@ -0,0 +1,65 @@
+++<?php
+++
+++/**
+++ * Implements hook_migrate_api().
+++ */
+++function addressfield_phone_migrate_api() {
+++  $api = array(
+++    'api' => 2,
+++    'field handlers' => array('MigrateAddressPhoneFieldHandler'),
+++  );
+++  return $api;
+++}
+++
+++/**
+++ * A Field Handler class that makes address_phone subfield destination for migate api.
+++ *
+++ * Arguments are used to specify all phone related values:
+++ *   'phone_number',
+++ *   'phone_number_extension',
+++ *   'mobile_number',
+++ *   'fax_number',
+++ */
+++class MigrateAddressPhoneFieldHandler extends MigrateFieldHandler {
+++  public function __construct() {
+++    $this->dependencies = array('MigrateAddressFieldHandler');
+++    $this->registerTypes(array('addressfield'));
+++  }
+++
+++  /**
+++   * Provide subfields for the addressfield columns.
+++   */
+++  public function fields() {
+++    // Declare our arguments to also be available as subfields.
+++    $fields = array(
+++      'phone_number' => t('Phone Number'),
+++      'phone_number_extension' => t('extension'),
+++      'mobile_number' => t('Mobile Number'),
+++      'fax_number' => t('Fax Number'),
+++    );
+++    return $fields;
+++  }
+++
+++  /**
+++   * Implements MigrateFieldHandler::prepare().
+++   *
+++   * @param $entity
+++   * @param array $field_info
+++   * @param array $instance
+++   * @param array $values
+++   *
+++   * @return null
+++   */
+++  public function prepare($entity, array $field_info, array $instance,
+++                          array $values) {
+++    dpm($values);
+++    $arguments = array();
+++    if (isset($values['arguments'])) {
+++      $arguments = array_filter($values['arguments']);
+++      unset($values['arguments']);
+++    }
+++    $language = $this->getFieldLanguage($entity, $field_info, $arguments);
+++
+++    return isset($return) ? $return : NULL;
+++  }
+++}
++\ No newline at end of file
+-- 
+1.7.9.5
+
